@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import connection from "../db";
+import connection from "../db.js";
 
 export async function signUp(req, res) {
   try {
