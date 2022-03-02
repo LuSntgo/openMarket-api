@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+import { v4 as uuid } from "uuid";
 import connection from "../db";
 
 export async function signUp(req, res) {
@@ -16,7 +16,7 @@ export async function signUp(req, res) {
   }
 }
 
-export async function logIn(req, res) {
+export async function login(req, res) {
   const { email, password } = req.body;
 
   try {
@@ -27,7 +27,7 @@ export async function logIn(req, res) {
         return res.sendStatus(404);
     }
     const name = user.rows.name;
-    
+
     if (bcrypt.compareSync(password, user.password)) {
       const token = uuid();
       await connection.query(
