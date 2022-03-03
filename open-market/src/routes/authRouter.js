@@ -1,17 +1,10 @@
-import { Router } from "express";
-import loginSchema from "../schemas/loginSchema.js";
-import signupSchema from "../schemas/signupSchema.js"
-import { validateSignup } from "../middlewares/signupValidade.js";
-import { signUp, login } from "../controllers/authController.js";
-
+import { Router } from 'express';
+import login from '../controllers/authController.js';
+import validateSchemaMiddleware from '../middlewares/validateSchemaMiddleware.js';
+import loginSchema from '../schemas/loginSchema.js';
 
 const authRouter = Router();
 
-
-
-authRouter.post("/auth/sign-up", validateSignup (signupSchema), signUp);
-authRouter.post("/auth/login", loginSchema, login);
+authRouter.post('/auth/login', validateSchemaMiddleware(loginSchema), login);
 
 export default authRouter;
-
-

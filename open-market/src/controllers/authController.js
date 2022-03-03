@@ -1,46 +1,33 @@
-import { v4 as uuid } from "uuid";
-import connection from "../db.js";
+import bcrypt from 'bcrypt';
+import { v4 as uuid } from 'uuid';
+import db from '../db.js';
 
-export async function signUp(req, res) {
+export default async function login(req, res) {
+  const { email, senha } = req.body;
+
   try {
-    const { name, email, password } = req.body;
+    const result = await db.query("SELECT * FROM usuarios WHERE email=$1", [email]);
+    if (result.rowCount === 0) {
+      return res.sendStatus(401);
+    }
 
-    await connection.query(
-      `INSERT INTO usuarios (nome,email,senha) VALUES ($1,$2,$3)`,
-      [name, email, password]
-    );
-    res.status(201).send("Cadastro realizado com sucesso");
+    const user = result.rows[0];
+    if (!bcrypt.compareSync(senha, user.senha)) {
+      return res.sendStatus(401);
+    }
+
+    const token = uuid();
+
+    await db.query(`
+      INSERT INTO 
+        sessoes ("idUsuario", token)
+        VALUES ($1, $2)
+    `, [user.id, token]);
+
+    res.send({
+      token
+    });
   } catch (error) {
-    console.log(error);
-    res.sendStatus(500);
-  }
-}
-
-export async function login(req, res) {
-  const { email, password } = req.body;
-
-  try {
-
-    const user = await connection.query("SELECT id FROM usuarios WHERE email=$1",
-    [email]);
-    if(user.rowCount===0){
-        return res.sendStatus(404);
-    }
-    const name = user.rows.name;
-
-    if (bcrypt.compareSync(password, user.password)) {
-      const token = uuid();
-      await connection.query(
-        `INSERT INTO sessoes ("idUsuario", token) VALUES($1, $2)
-                [user, token]
-                `
-      );
-      res.send({ name, email, token });
-      return;
-    }
-    res.sendStatus(401);
-    return;
-  } catch {
-    res.sendStatus(500);
+    res.status(500).send(error);
   }
 }
